@@ -156,9 +156,9 @@ print(f"Bester Punkt mit z={max_z:.04f} gefunden bei {best_point_svm}")
 
 # Gittersuchverfahren für Zufallswald-Methode mit höchster Akkuranz
 
-grid_points_n_estimators = np.arange(50, 120)
-grid_points_max_depth = np.arange(8, 16)
-grid_points_min_samples_split = np.arange(2, 17)
+grid_points_n_estimators = np.arange(50, 70)
+grid_points_max_depth = np.arange(7, 14)
+grid_points_min_samples_split = np.arange(2, 14)
 max_z = -np.inf
 best_point_rf = (35, 7, 2)
 for n_estimators in grid_points_n_estimators:
