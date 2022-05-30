@@ -18,7 +18,7 @@ import shap
 from statsmodels import robust
 import time
 
-data = pd.read_csv('data/cumulative_2022.04.28_05.30.33.csv', header=53))
+data = pd.read_csv('data/cumulative_2022.04.28_05.30.33.csv', header=53)
 
 print("Kepler-Object-of-Interest-Datensatz wurde eingelesen.")
 
@@ -26,8 +26,8 @@ print("Kepler-Object-of-Interest-Datensatz wurde eingelesen.")
 # Spalten mit "id" oder "name" im Namen enthalten nur Bezeichnungen. Die beiden "koi_teq_err"-
 # Spalten sind leer.
 
-to_pop=["rowid", "kepid", "kepoi_name", "kepler_name",
-          "koi_teq_err1", "koi_teq_err2", "koi_tce_delivname"]
+to_pop = ["kepid", "kepoi_name", "kepler_name",
+          "koi_teq_err1", "koi_teq_err2", "koi_tce_delivname"]  # 'rowid'
 
 for col in to_pop:
 
@@ -327,7 +327,7 @@ print("Optimiertes Zufallswald-Modell gespeichert unter 'data/models/rf_model.pi
 
 # Triviale Hypothese
 
-print("Base Rate: Akkuranz der Annahme, dass alle Ziele den häufigsten Wert, FALSE POSITIVE, annehmen")
+print("Base Rate: Akkuranz der Annahme, dass alle Ziele den häufigsten Wert, annehmen")
 
 print("TESTDATEN")
 print(f"Anzahl der KOI: {len(y_test)}")
@@ -430,26 +430,25 @@ def calculate_tpr_fpr(y_real, y_pred):
 
 def plot_roc_curve(tpr, fpr, scatter=True, ax=None):
     '''
-      Plots the ROC Curve by using the list of coordinates (tpr and fpr).
+    Plots the ROC Curve by using the list of coordinates (tpr and fpr).
 
-      Args:
-          tpr: The list of TPRs representing each coordinate.
-          fpr: The list of FPRs representing each coordinate.
-          scatter: When True, the points used on the calculation will be plotted with the line (default = True).
-      '''
+    Args:
+        tpr: The list of TPRs representing each coordinate.
+        fpr: The list of FPRs representing each coordinate.
+        scatter: When True, the points used on the calculation will be plotted with the line (default = True).
+    '''
     if ax == None:
-
         plt.figure(figsize=(5, 5))
         ax = plt.axes()
 
     if scatter:
         sns.scatterplot(x=fpr, y=tpr, ax=ax)
-        sns.lineplot(x=fpr, y=tpr, ax=ax)
-        sns.lineplot(x=[0, 1], y=[0, 1], color='green', ax=ax)
-        plt.xlim(-0.05, 1.05)
-        plt.ylim(-0.05, 1.05)
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
+    sns.lineplot(x=fpr, y=tpr, ax=ax)
+    sns.lineplot(x=[0, 1], y=[0, 1], color='green', ax=ax)
+    plt.xlim(-0.05, 1.05)
+    plt.ylim(-0.05, 1.05)
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
 
 
 print("Histogramme und ROC-Kurven der disposition-Werte zueinander erstellen.")
@@ -473,11 +472,12 @@ class_combos = (np.asarray(class_combos).reshape(3, 2, 2)
 
 y_proba_all = np.array([y_proba_knn, y_proba_svm, y_proba_rf])
 ml_method = ["KNN", "SVM", "RF"]
+
 # Plots the Probability Distributions and the ROC Curves One vs One
 bins = [i/20 for i in range(20)] + [1]
 roc_auc_ovo = {}
 
-for i in range(len(ml_method)):
+for i in range(len(y_proba_all[:, 0, 0])):
 
     fig = plt.figure(figsize=(11.25, 15))
     print(f"ROC AUC für {ml_method[i]}-Methode")
@@ -495,7 +495,6 @@ for i in range(len(ml_method)):
         # Prepares an auxiliary dataframe to help with the plots
         df_aux = x_test.copy()
         df_aux['class'] = y_test
-        # Probability that instances ":" are of class c1
         df_aux['prob'] = y_proba_all[i, :, c1_index]
 
         # Slices only the subset with both classes
@@ -518,22 +517,27 @@ for i in range(len(ml_method)):
         tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
 
         plot_roc_curve(tpr, fpr, scatter=False, ax=ax_bottom)
-        ax_bottom.set_title("ROC Curve OvO  {title}")
+        ax_bottom.set_title(f"ROC Curve  {title}")
         fig.tight_layout()
 
         # Calculates the ROC AUC OvO
         roc_auc_ovo[title] = roc_auc_score(df_aux['class'], df_aux['prob'])
 
-    plt.savefig(f'data/figures/hist_roc_{ml_method[i]}.png')
-# Ende angepasster Codeblock
+    # Ende angepasster Codeblock
 
-    # Anzeige der ROC AUC OvR
+    plt.savefig(f'../data/figures/hist_roc_{ml_method[i]}.png')
+
     print(
-        f"ROC AUC von {list(roc_auc_ovo)[j]}: {list(roc_auc_ovo.values())[j]:.4f}")
+        f"Plots gespeichert unter (f'../data/figures/hist_roc_{ml_method[i]}.png')")
+    print(f"ROC AUC für {ml_method[i]}-Methode")
+    for j in range(len(class_combos)):
 
+        print(
+            f"ROC AUC von {list(roc_auc_ovo)[j]}: {list(roc_auc_ovo.values())[j]:.4f}")
     print(f"Mittelwert von ROC AUC: {np.mean(list(roc_auc_ovo.values())):.4f}")
     print("---------------------------------------------------")
 
+# plt.tight_layout()
 print("Histogramme und ROC-Kurven der disposition-Werte zueinander wurden erstellt.")
 
 
