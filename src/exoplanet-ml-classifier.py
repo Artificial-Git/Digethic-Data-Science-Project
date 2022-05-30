@@ -54,16 +54,39 @@ for column in data:
 
 # Korrelationsmatrix erstellen
 
-fig = plt.figure(figsize=(35, 35), dpi=300)
+fig = plt.figure(figsize=(14.14, 14.14), dpi=300)
 plt.title("Correlation heatmap of Kepler Objects of Interest dataset features")
-sns.heatmap(data.corr(), annot=True, fmt='.2f')
+sns.set(font_scale=1)
+sns.heatmap(data.corr(), annot=True, annot_kws={"fontsize": 6}, fmt='.2f')
+
 plt.savefig('../data/figures/heatmap.png')
 
 
 # Streudiagrammsmatrix erstellen
 
-plt.title("Scatter plot matrix of Kepler Objects of Interest dataset features")
-pd.plotting.scatter_matrix(data, figsize=(35, 35), c="#1ACC94")
+scatter_data = data.copy()
+to_pop = ['koi_period_err1', 'koi_period_err2', 'koi_time0bk', 'koi_time0bk_err1',
+          'koi_time0bk_err2', 'koi_impact', 'koi_impact_err1', 'koi_impact_err2',
+          'koi_duration_err1', 'koi_duration_err2', 'koi_depth', 'koi_depth_err1', 'koi_depth_err2',
+           'koi_prad_err1', 'koi_prad_err2', 'koi_insol', 'koi_insol_err1', 'koi_insol_err2',
+           'koi_steff_err2', 'koi_slogg', 'koi_slogg_err1', 'koi_slogg_err2', 'koi_srad',
+           'koi_srad_err1', 'koi_srad_err2', 'ra', 'dec', 'koi_kepmag']
+
+for col in to_pop:
+
+    scatter_data.pop(col)
+
+scatter_matrix = pd.plotting.scatter_matrix(
+    scatter_data, figsize=(14.14, 14.14), c="#1ACC94")
+
+for ax in scatter_matrix.ravel():
+
+    ax.set_xlabel(ax.get_xlabel(), rotation=90)
+    ax.set_ylabel(ax.get_ylabel(), rotation=0)
+    ax.yaxis.set_label_coords(-1.2, 0)
+plt.suptitle(
+    "Scatter Matrix of selected Kepler Objects of Interest dataset features", y=1)
+plt.tight_layout(pad=0.2)
 plt.savefig('../data/figures/scatter_matrix.png')
 
 
@@ -78,12 +101,16 @@ for column in scaled_data:
     scaled_data[column] = minmax.fit_transform(
     scaled_data[column].to_numpy().reshape(-1, 1))
 
-fig = plt.figure(figsize=(20, 15))
-plt.title("Boxplot of the Kepler Objects of Interest Table")
+fig = plt.figure(figsize=(15, 7.5))
+plt.title("Boxplot of the Kepler Objects of Interest Table Dataset")
 plt.boxplot(scaled_data, labels=data.columns,
             medianprops=dict(color="#1ACC94"))
 plt.xticks(rotation=90)
+plt.ylabel("Scaled values")
+plt.tight_layout(pad=0.2)
+
 plt.savefig('../data/figures/boxplot.png')
+
 
 # Entfernung von Attributen, die Proxies des Zielwertes sind, bzw.  Flag-Werte sind.
 x = data.drop(['koi_disposition', 'koi_pdisposition', 'koi_score', 'koi_fpflag_ss', 'koi_fpflag_co',
@@ -414,7 +441,7 @@ roc_auc_ovo = {}
 
 for i in range(len(ml_method)):
 
-    fig = plt.figure(figsize=(15, 20))
+    fig = plt.figure(figsize=(11.25, 15))
     print(f"ROC AUC für {ml_method[i]}-Methode")
 
     for j in range(len(class_combos)):
@@ -467,3 +494,36 @@ for i in range(len(ml_method)):
     print("---------------------------------------------------")
 
 
+# Permutation Importance und Feature Importance bestimmen und anzeigen
+
+perm_imp_knn = permutation_importance(opt_knn, x_test, y_test, scoring='accuracy')
+importance_knn = perm_imp_knn.importances_mean
+
+perm_imp_svm = permutation_importance(opt_svm, x_test, y_test, scoring='accuracy')
+importance_svm = perm_imp_svm.importances_mean
+
+perm_imp_rf = permutation_importance(opt_rf, x_test, y_test, scoring='accuracy')
+importance_rf = perm_imp_rf.importances_mean
+
+
+def plot_one_method(ax, title, x):
+    ax.set_title(title)
+    ticks = np.arange(1, len(x) + 1)
+    ax.bar(ticks, x)
+    ax.set_xticks(ticks=ticks, labels=list(x_train.columns), rotation=90)
+
+
+fig, ax = plt.subplots(4, 1, figsize=(10, 14.14))
+plot_one_method(
+    ax[0], "Permutation Importance for the k Nearest Neighbours Classifier", importance_knn)
+plot_one_method(
+    ax[1], "Permutation Importance for the Support Vector Machine Classifier", importance_svm)
+
+plot_one_method(
+    ax[2], "Permutation Importance for the Random Forest Classifier", importance_rf)
+
+plot_one_method(ax[3], "Feature Importance fpr the Random Forest Classifier",
+                opt_rf.feature_importances_)
+plt.tight_layout()
+plt.savefig(f'../data/figures/importances.png')
+fig.tight_layout()
