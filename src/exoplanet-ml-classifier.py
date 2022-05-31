@@ -45,7 +45,7 @@ koi_pdisposition_dict = {'FALSE POSITIVE': 0, 'CANDIDATE': 1}
 data["koi_pdisposition"] = data["koi_pdisposition"].replace(
     koi_pdisposition_dict)
 
-print("Ordinalwerten wurden in numerische Werte umgewandelt.")
+print("Ordinalwerte wurden in numerische Werte umgewandelt.")
 
 
 # Ersetzung fehlender Werte durch imputierte Werte
@@ -526,10 +526,10 @@ for i in range(len(y_proba_all[:, 0, 0])):
 
     # Ende angepasster Codeblock
 
-    plt.savefig(f'/data/figures/hist_roc_{ml_method[i]}.png')
+    plt.savefig(f'data/figures/hist_roc_{ml_method[i]}.png')
 
     print(
-        f"Plots gespeichert unter (f'/data/figures/hist_roc_{ml_method[i]}.png')")
+        f"Plots gespeichert unter (f'data/figures/hist_roc_{ml_method[i]}.png')")
     print(f"ROC AUC für {ml_method[i]}-Methode")
     for j in range(len(class_combos)):
 
